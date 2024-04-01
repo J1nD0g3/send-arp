@@ -7,6 +7,21 @@
 #include <string.h>
 #include <unistd.h>
 
+void hextostr(uint8_t *hexarr, uint8_t *res){
+        char colon[2] = ":";
+	for(int i=0;i<17;){
+                if(i % 3 == 0){
+                        if(hexarr[i/3] < 0x10) sprintf((char*)res+i, "0%x", hexarr[i/3]);
+                        else sprintf((char*)res+i, "%x", hexarr[i/3]);
+                        i+=2;
+                }
+                else{
+                        res[i] = colon[0];
+                        i++;
+                }
+        }	
+}
+
 int GetMacAddress(const char *ifname, uint8_t *mac_addr){
 	struct ifreq ifr;
        	int sockfd, ret;
@@ -25,7 +40,6 @@ int GetMacAddress(const char *ifname, uint8_t *mac_addr){
 		return -1;
 	}
 	memcpy(mac_addr, ifr.ifr_hwaddr.sa_data, 6);
-
 	close(sockfd);
 	return 0;
 }
