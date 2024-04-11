@@ -17,7 +17,7 @@ void usage() {
 }
 
 int main(int argc, char* argv[]) {
-	if (argc % 2  == 1) {
+	if (argc % 2  == 1 || argc < 3) {
 		usage();
 		return -1;
 	}
@@ -75,16 +75,20 @@ int main(int argc, char* argv[]) {
 			fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(handle));
 		}	
 	
-	
-		int reply = pcap_next_ex(handle, &header, &pckt);	
-		if(reply == PCAP_ERROR || reply == PCAP_ERROR_BREAK){
-			printf("pcap_next_ex return %d\n",reply);
-			pcap_close(handle);
-			return -1;
+		while(true){
+			int reply = pcap_next_ex(handle, &header, &pckt);
+			if(reply == 0) continue;	
+			if(reply == PCAP_ERROR || reply == PCAP_ERROR_BREAK){
+				printf("pcap_next_ex return %d\n",reply);
+				pcap_close(handle);
+				return -1;
+			}
+			
+			PEthHdr eth_hdr = (PEthHdr)pckt;
+			if(ntohs(eth_hdr->type_) == 0x806) break;
+			
 		}
-
 		PArpHdr arp_hdr = (PArpHdr)(pckt + sizeof(EthHdr));
-	
 		//printf("%u bytes captured\n", header->caplen); // print
 		hextostr((uint8_t*)arp_hdr+0x8, sender_mac);   // print 
 		printf("Victim's mac : %s\n", sender_mac);     // print 	
